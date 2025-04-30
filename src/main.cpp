@@ -6,13 +6,20 @@ Use this as a starting point or replace it with your code.
 by Jeffery Myers is marked with CC0 1.0. To view a copy of this license, visit https://creativecommons.org/publicdomain/zero/1.0/
 
 */
+#include "circle.h"
+#include "square.h"
+#include "editor.h"
 
 #include "raylib.h"
-
-#include "resource_dir.h"	// utility header for SearchAndSetResourceDir
+#include "resource_dir.h"// utility header for SearchAndSetResourceDir
+#include <vector>
+#include <iostream>
 
 int main ()
 {
+	const int screen_width = 1280;
+	const int screen_height = 800;
+
 	// Tell the window to use vsync and work on high DPI displays
 	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
 
@@ -24,24 +31,56 @@ int main ()
 
 	// Load a texture from the resources directory
 	Texture wabbit = LoadTexture("wabbit_alpha.png");
+
+	Editor editor;
+
 	
 	// game loop
 	while (!WindowShouldClose())		// run the loop untill the user presses ESCAPE or presses the Close button on the window
 	{
+	
+		editor.update();
+
 		// drawing
 		BeginDrawing();
 
 		// Setup the back buffer for drawing (clear color and depth buffers)
 		ClearBackground(BLACK);
 
-		// draw some text using the default font
-		DrawText("Hello Raylib", 200,200,20,WHITE);
 
+		// draw some text using the default font
+		DrawText("Click", 200,200,20,WHITE);
+
+		DrawTexture(wabbit, 250, 200, WHITE);
+
+		//draw editer
+		editor.draw();
+#if 0
 		// draw our texture to the screen
-		DrawTexture(wabbit, 400, 200, WHITE);
-		
+		float rate = 100.0f;
+		float amplitude =1.0f;
+		// only do this if mouse was clicked
+		if (IsMouseButtonDown(0))
+		{
+			for (int i = 0; i <= screen_width; i += 10)
+			{
+				int y = screen_height / 2 + (sinf((GetTime() * 3) + i / 50.0f) * 100);
+
+				//Get the rabits to grow 
+				float scale = i + (sinf((GetTime() * rate) + 30 / 50.0f) * amplitude);
+				//Have the growing rabits follow the Mouse
+				DrawTextureEx(wabbit, (Vector2) { GetMouseX(), GetMouseY() }, 0, scale, ORANGE);
+
+
+			}
+
+			
+		}
+
+#endif
 		// end the frame and get ready for the next one  (display frame, poll input, etc...)
 		EndDrawing();
+		
 	}
 
 	// cleanup
