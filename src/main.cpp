@@ -115,18 +115,18 @@ void InitGame(void)
     shipHeight = (PLAYER_BASE_SIZE / 2);
 
 
-    /*
+/*
     Player player1(1);
     Player player2(2);
 
     // Initialization player
     players[0] = &player1;
     players[1] = &player2;
-    
+
     players[0]->position = Vector2{ screenWidth / 2, screenHeight/2 - shipHeight / 2 };
     players[1]->position = Vector2{ screenWidth / 2, screenHeight/2 - shipHeight / 2 };
 
-    */
+*/
 }
 
 // Update game (one frame)
@@ -137,12 +137,14 @@ void UpdateGame(void)
         if (IsKeyPressed('P')) pause = !pause;
 
         if (!pause)
-        {
+{
           
             player.Update(screenWidth, screenHeight);
         }
-        
-        
+
+	// Tell the window to use vsync and work on high DPI displays
+	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
+
         for (int i = 0; i < PLAYER_MAX_SHOOTS; i++)
         {
             if (!shoot[i].IsActive())
@@ -170,7 +172,7 @@ void UpdateGame(void)
                         shoot[i].rotation = player.rotation;
                         break;
                     }
-                
+
                 }
             }
             */
@@ -196,9 +198,9 @@ void UpdateGame(void)
                         shoot[i].active = false;
                         shoot[i].lifeSpan = 0;
                     }
-                    
+	
                     if (shoot[i].position.y > screenHeight + shoot[i].radius)
-                    {
+	{
                         shoot[i].active = false;
                         shoot[i].lifeSpan = 0;
                     }
@@ -207,7 +209,7 @@ void UpdateGame(void)
                         shoot[i].active = false;
                         shoot[i].lifeSpan = 0;
                     }
-
+	
                     // Life of a shot
                     if (shoot[i].lifeSpan >= 900)
                     {
@@ -246,33 +248,34 @@ void DrawGame(void)
     ClearBackground(RAYWHITE);
 
     if (!gameOver)
-    {
+			{
         player.Draw();
 
-        
+
         // Draw shoot
         for (int i = 0; i < PLAYER_MAX_SHOOTS; i++)
         {
             shoot[i].Draw();
-        }
+			}
 
         if (victory) DrawText("VICTORY", screenWidth / 2 - MeasureText("VICTORY", 20) / 2, screenHeight / 2, 20, LIGHTGRAY);
-
+			
         if (pause) DrawText("GAME PAUSED", screenWidth / 2 - MeasureText("GAME PAUSED", 40) / 2, screenHeight / 2 - 40, 40, GRAY);
     }
     else {
         DrawText("PRESS [ENTER] TO PLAY AGAIN", screenWidth / 2 - MeasureText("PRESS [ENTER] TO PLAY AGAIN", 20) / 2, screenHeight / 2 - 50, 20, GRAY);
-    }
+		}
 
+#endif
 		// end the frame and get ready for the next one  (display frame, poll input, etc...)
 		EndDrawing();
 }
-
+		
 // Unload game variables
 void UnloadGame(void)
 {
     // TODO: Unload all dynamic loaded data (textures, sounds, models...)
-}
+	}
 
 // Update and Draw (one frame)
 void UpdateDrawFrame(void)
