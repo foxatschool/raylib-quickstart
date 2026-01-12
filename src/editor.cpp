@@ -1,9 +1,12 @@
 #include "editor.h"
 #include "square.h"
 #include "circle.h"
+#include "image.h"
 
 Editor::Editor()
 {
+	textures_m.push_back(LoadTexture("wabbit_alpha.png"));
+
 	shape_m = create(type_m);
 }
 
@@ -26,6 +29,8 @@ void Editor::update()
 		size_m -= 0.5f;
 		size_m = std::max(size_m, 1.0f);
 		if (size_m < 0) size_m = 1;
+
+		
 	}
 
 	shape_m->setSize(size_m);
@@ -91,6 +96,8 @@ Shape* Editor::create(Shape::Type type)
 	case Shape::Type::SQUARE:
 		shape = new Square(GetMousePosition(), size_m, colors_m[colorIndex_m]);
 		break;
+	case Shape::Type::IMAGE:
+		shape = new Image(textures_m[textureIndex_m],  GetMousePosition(), size_m, colors_m[colorIndex_m]);
 	default:
 		break;
 

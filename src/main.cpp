@@ -45,16 +45,18 @@ int main ()
 		BeginDrawing();
 
 		// Setup the back buffer for drawing (clear color and depth buffers)
-		ClearBackground(BLACK);
+		ClearBackground(WHITE);
 
 
 		// draw some text using the default font
-		DrawText("Click", 200,200,20,WHITE);
+		DrawText("Click", 200,200,20,BLACK);
 
-		DrawTexture(wabbit, 250, 200, WHITE);
+		DrawTexture(wabbit, 250, 200, BLACK);
 
 		//draw editer
 		editor.draw();
+
+
 #if 0
 		// draw our texture to the screen
 		float rate = 100.0f;

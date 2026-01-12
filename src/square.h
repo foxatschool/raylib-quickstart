@@ -11,12 +11,13 @@ public:
 	{
 	}
 
-
-
 	// Inherited via Shape
 	void update() override;
 
 	void draw() override;
 
 	Type getType() override { return Type::SQUARE; }
+
+protected:
+	float rotation_m{ 0 };
 };

@@ -9,6 +9,7 @@ public:
 	{
 		CIRCLE,
 		SQUARE,
+		IMAGE,
 		NUMSHAPES
 	};
 
