@@ -1,49 +1,251 @@
-/*
-Raylib example file.
-This is an example main file for a simple raylib project.
-Use this as a starting point or replace it with your code.
+#include "raylib.h"
 
-by Jeffery Myers is marked with CC0 1.0. To view a copy of this license, visit https://creativecommons.org/publicdomain/zero/1.0/
+#include <vector>
+#include <math.h>
+#include <iostream>
+#include "player.h"
+#include "shoot.h"
+
+#if defined(PLATFORM_WEB)
+#include <emscripten/emscripten.h>
+#endif
+#include <random>
+
+//----------------------------------------------------------------------------------
+// Some Defines
+//----------------------------------------------------------------------------------
+#define PLAYER_BASE_SIZE    60.0f
+#define PLAYER_SPEED        6.0f
+#define PLAYER_MAX_SHOOTS   30
+//------------------------------------------------------------------------------------
+// Global Variables Declaration
+//------------------------------------------------------------------------------------
+static const int screenWidth = 2800;
+static const int screenHeight = 1400;
+
+float p1StartPos = (screenWidth / 2) / 2;
+float p2StartPos = (screenWidth / 2) + (screenWidth / 2) / 2;
+
+//static const int screenWidth = GetScreenWidth();
+//static const int screenHeight = GetScreenHeight();
+
+static bool gameOver = false;
+static bool pause = false;
+static bool victory = false;
+
+// NOTE: Defined triangle is isosceles with common angles of 70 degrees.
+static float shipHeight = 0.0f;
+
+static Player player;
+static Shoot shoot[PLAYER_MAX_SHOOTS];
+
+
+//------------------------------------------------------------------------------------
+// Module Functions Declaration (local)
+//------------------------------------------------------------------------------------
+static void InitGame(void);         // Initialize game
+static void UpdateGame(void);       // Update game (one frame)
+static void DrawGame(void);         // Draw game (one frame)
+static void UnloadGame(void);       // Unload game
+static void UpdateDrawFrame(void);  // Update and Draw (one frame)
+
+//------------------------------------------------------------------------------------
+// Program main entry point
+//------------------------------------------------------------------------------------
+int main(void)
+{
+    // Initialization (Note windowTitle is unused on Android)
+    //---------------------------------------------------------
+    //SetConfigFlags(FLAG_WINDOW_TOPMOST | FLAG_WINDOW_UNDECORATED);
+    //SetConfigFlags(FLAG_FULLSCREEN_MODE);
+    InitWindow(screenWidth, screenHeight, "Tank Game");
+
+    InitGame();
+
+#if defined(PLATFORM_WEB)
+    emscripten_set_main_loop(UpdateDrawFrame, 60, 1);
+#else
+    SetTargetFPS(60);
+    //--------------------------------------------------------------------------------------
+
+    // Main game loop
+    while (!WindowShouldClose())    // Detect window close button or ESC key
+    {
+        // Update and Draw
+        //----------------------------------------------------------------------------------
+        UpdateDrawFrame();
+        //----------------------------------------------------------------------------------
+    }
+#endif
+    // De-Initialization
+    //--------------------------------------------------------------------------------------
+    UnloadGame();         // Unload loaded data (textures, sounds, models...)
+
+    CloseWindow();        // Close window and OpenGL context
+    //--------------------------------------------------------------------------------------
+
+    return 0;
+}
+
+//------------------------------------------------------------------------------------
+// Module Functions Definitions (local)
+//------------------------------------------------------------------------------------
+
+// Initialize game variables
+
+float getRandomFloat(float min, float max)
+{
+    static std::random_device rd;
+    static std::mt19937 gen(rd());  // Seed the random number generator
+    std::uniform_real_distribution<float> dist(min, max);
+
+    return dist(gen);
+}
+
+float randomAngle = getRandomFloat(0.0f, 180.0f);
+
+void InitGame(void)
+{
+    int posx, posy;
+    int velx, vely;
+    bool correctRange = false;
+    victory = false;
+    pause = false;
+
+    shipHeight = (PLAYER_BASE_SIZE / 2);
+
+
+/*
+    Player player1(1);
+    Player player2(2);
+
+    // Initialization player
+    players[0] = &player1;
+    players[1] = &player2;
+
+    players[0]->position = Vector2{ screenWidth / 2, screenHeight/2 - shipHeight / 2 };
+    players[1]->position = Vector2{ screenWidth / 2, screenHeight/2 - shipHeight / 2 };
 
 */
-#include "circle.h"
-#include "square.h"
-#include "editor.h"
+}
 
-#include "raylib.h"
-#include "resource_dir.h"// utility header for SearchAndSetResourceDir
-#include <vector>
-#include <iostream>
-
-int main ()
+// Update game (one frame)
+void UpdateGame(void)
 {
-	const int screen_width = 1280;
-	const int screen_height = 800;
+    if (!gameOver)
+    {
+        if (IsKeyPressed('P')) pause = !pause;
+
+        if (!pause)
+{
+          
+            player.Update(screenWidth, screenHeight);
+        }
 
 	// Tell the window to use vsync and work on high DPI displays
 	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
 
-	// Create the window and OpenGL context
-	InitWindow(1280, 800, "Hello Raylib");
+        for (int i = 0; i < PLAYER_MAX_SHOOTS; i++)
+        {
+            if (!shoot[i].IsActive())
+            {
+                shoot[i].position = Vector2{ (2800 / 2) , 1400 / 2 };
+                shoot[i].active = true;
+                shoot[i].speed.x = 1.0 * sin(getRandomFloat(0.0f, 360.0) * DEG2RAD) * PLAYER_SPEED;
+                shoot[i].speed.y = 1.0 * cos(getRandomFloat(0.0f, 360.0f) * DEG2RAD) * PLAYER_SPEED;
+                shoot[i].rotation = getRandomFloat(0.0f, 360.0f);
+                break;
+            }
+        }
+        /*
+            // Player shoot logic
+            if (IsKeyPressed(KEY_SPACE))
+            {
+                for (int i = 0; i < PLAYER_MAX_SHOOTS; i++)
+                {
+                    if (!shoot[i].IsActive())
+                    {
+                        shoot[i].position = Vector2{ static_cast<float>(player.position.x + sin(player.rotation * DEG2RAD) * (shipHeight)), static_cast<float>(player.position.y - cos(player.rotation * DEG2RAD) * (shipHeight)) };
+                        shoot[i].active = true;
+                        shoot[i].speed.x = 1.0 * sin(player.rotation * DEG2RAD) * PLAYER_SPEED;
+                        shoot[i].speed.y = 1.0 * cos(player.rotation * DEG2RAD) * PLAYER_SPEED;
+                        shoot[i].rotation = player.rotation;
+                        break;
+                    }
 
-	// Utility function from resource_dir.h to find the resources folder and set it as the current working directory so we can load from it
-	SearchAndSetResourceDir("resources");
+                }
+            }
+            */
 
-	// Load a texture from the resources directory
-	Texture wabbit = LoadTexture("wabbit_alpha.png");
+            // Shoot life timer
+            for (int i = 0; i < PLAYER_MAX_SHOOTS; i++)
+            {
+                if (shoot[i].active) shoot[i].lifeSpan++;
+            }
 
-	Editor editor;
+            // Shot logic
+            for (int i = 0; i < PLAYER_MAX_SHOOTS; i++)
+            {
+                if (shoot[i].active)
+                {
+                    // Movement
+                    shoot[i].position.x += shoot[i].speed.x;
+                    shoot[i].position.y -= shoot[i].speed.y;
 
+                    // Collision logic: shot vs walls
+                    if (shoot[i].position.x > screenWidth + shoot[i].radius)
+                    {
+                        shoot[i].active = false;
+                        shoot[i].lifeSpan = 0;
+                    }
 	
-	// game loop
-	while (!WindowShouldClose())		// run the loop untill the user presses ESCAPE or presses the Close button on the window
+                    if (shoot[i].position.y > screenHeight + shoot[i].radius)
 	{
+                        shoot[i].active = false;
+                        shoot[i].lifeSpan = 0;
+                    }
+                    else if (shoot[i].position.y < 0 - shoot[i].radius)
+                    {
+                        shoot[i].active = false;
+                        shoot[i].lifeSpan = 0;
+                    }
 	
-		editor.update();
+                    // Life of a shot
+                    if (shoot[i].lifeSpan >= 900)
+                    {
+                        shoot[i].position = Vector2{ 0, 0 };
+                        shoot[i].speed = Vector2{ 0, 0 };
+                        shoot[i].lifeSpan = 0;
+                        shoot[i].active = false;
+                    }
+                }
+            }
 
-		// drawing
+            // Collision logic: player vs meteors
+            //player.collider = Vector3{ static_cast<float>(player.position.x + sin(player.rotation * DEG2RAD) * (shipHeight / 2.5f)), static_cast<float>(player.position.y - cos(player.rotation * DEG2RAD) * (shipHeight / 2.5f)), 12 };
+
+            for (int i = 0; i < PLAYER_MAX_SHOOTS; i++)
+            {
+                if (CheckCollisionCircles(Vector2{ player.position.x, player.position.y }, player.collider.y, shoot[i].GetPosition(), shoot[i].radius) && shoot[i].active) gameOver = true;
+            }
+
+    }
+    else
+    {
+        if (IsKeyPressed(KEY_ENTER))
+	    {
+            InitGame();
+            gameOver = false;
+        }
+    }
+}
+
+// Draw game (one frame)
+void DrawGame(void)
+{
 		BeginDrawing();
 
+<<<<<<< HEAD
 		// Setup the back buffer for drawing (clear color and depth buffers)
 		ClearBackground(WHITE);
 
@@ -65,31 +267,43 @@ int main ()
 		if (IsMouseButtonDown(0))
 		{
 			for (int i = 0; i <= screen_width; i += 10)
+=======
+    ClearBackground(RAYWHITE);
+
+    if (!gameOver)
+>>>>>>> 2b818c70ae5b258b8be9a9791951f2e3a0b3bec3
 			{
-				int y = screen_height / 2 + (sinf((GetTime() * 3) + i / 50.0f) * 100);
-
-				//Get the rabits to grow 
-				float scale = i + (sinf((GetTime() * rate) + 30 / 50.0f) * amplitude);
-				//Have the growing rabits follow the Mouse
-				DrawTextureEx(wabbit, (Vector2) { GetMouseX(), GetMouseY() }, 0, scale, ORANGE);
+        player.Draw();
 
 
+        // Draw shoot
+        for (int i = 0; i < PLAYER_MAX_SHOOTS; i++)
+        {
+            shoot[i].Draw();
 			}
 
+        if (victory) DrawText("VICTORY", screenWidth / 2 - MeasureText("VICTORY", 20) / 2, screenHeight / 2, 20, LIGHTGRAY);
 			
+        if (pause) DrawText("GAME PAUSED", screenWidth / 2 - MeasureText("GAME PAUSED", 40) / 2, screenHeight / 2 - 40, 40, GRAY);
+    }
+    else {
+        DrawText("PRESS [ENTER] TO PLAY AGAIN", screenWidth / 2 - MeasureText("PRESS [ENTER] TO PLAY AGAIN", 20) / 2, screenHeight / 2 - 50, 20, GRAY);
 		}
 
 #endif
 		// end the frame and get ready for the next one  (display frame, poll input, etc...)
 		EndDrawing();
+}
 		
+// Unload game variables
+void UnloadGame(void)
+{
+    // TODO: Unload all dynamic loaded data (textures, sounds, models...)
 	}
 
-	// cleanup
-	// unload our texture so it can be cleaned up
-	UnloadTexture(wabbit);
-
-	// destroy the window and cleanup the OpenGL context
-	CloseWindow();
-	return 0;
+// Update and Draw (one frame)
+void UpdateDrawFrame(void)
+{
+    UpdateGame();
+    DrawGame();
 }
